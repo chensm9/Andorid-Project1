@@ -41,7 +41,7 @@ TextView、EditText、ConstraintLayout、Button、ImageView、RadioGroup、Radio
 ---
 
 ### 完成期限
-第五周各班实验课前一天晚上23：59。
+第五周各班实验课进行检查，未通过者需在下一周进行修改与重新检查，如再次未通过则扣除这一周任务的分数。
 
 ---
 
@@ -85,7 +85,7 @@ TextView、EditText、ConstraintLayout、Button、ImageView、RadioGroup、Radio
 ---
 
 ### 完成期限
-第六周各班实验课前一天晚上23：59。
+第六周各班实验课进行检查，未通过者需在下一周进行修改与重新检查，如再次未通过则扣除这一周任务的分数。
 
 ---
 
