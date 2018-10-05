@@ -258,3 +258,487 @@ setNegativeButton("取消", new DialogInterface.OnClickListener() {
 ### 拓展知识
 有兴趣的同学可以查阅Snackbar,TextInputLayout这两个控件的使用方法。
 
+---
+
+---
+
+## 第六周任务
+## Intent、Bundle的使用以及RecyclerView、ListView的应用
+---
+### 基础知识 
+#### ListView的使用  
+布局文件中写上
+```javascript
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+```
+即可创建一个空的ListView，然后在.java文件中填充数据。  
+在.java文件中获得这个ListView后，使用Adapter为这个ListView填充数据，常用的Adapter有ArrayAdapter、SimpleAdapter。随着ListView中内容的丰富，这两种Adapter很难满足要求，因此现在一般使用自定义的Adapter来填充数据，也强烈建议同学们用自定义Adapter完成收藏夹的设计。自定义Adapter会在拓展知识中讲。
+##### ArrayAdapter
+最简单的Adapter，创建ArrayAdapter时需指定如下三个参数：  
+Context : 代表了访问整个Android应用的接口。几乎创建所有组件都需要传入Context对象。  
+textViewResourceId : 一个资源ID，代表一个TextView，该TextView组件将作为ArrayAdapter的列表项组件。  
+数组或List : 负责为多个列表项提供数据  
+```javascript
+    String[] operations = {"text1", "text2", "text3",};
+    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.operation, operations);
+    operationList.setAdapter(arrayAdapter);
+```
+创建完ArrayAdapter后，调用setAdapter方法即可填充数据。  
+注意这里的textViewResourceId是一个layout，且**只含有一个TextView**，其他组件均不可存在，包括ConstraintLayout等布局组件。  
+##### SimpleAdapter  
+SimpleAdapter比ArrayAdapter强大很多，创建SimpleAdaper需要5个参数，第一个参数依然是Context。  
+第二个参数 ： 该参数是一个List<? Extends Map<String, ?>>类型的集合对象，该集合中每个Map<String, ?>对象生成一个列表项。  
+第三个参数 ： 该参数指定一个界面布局的ID。该界面布局指定每一个列表项的样式。  
+第四个参数 ： 该参数是一个String[]类型的参数，该参数决定提取Map<String, ?>对象中哪些key对应的value来生成列表项。  
+第五个参数 ： 该参数是一个int[]类型的参数，决定填充哪些组件。  
+
+示例 ： 模拟一个图书清淡，一个map中有两个key，存放书名和价格，然后添加到list中。  
+```javascript
+    List<Map<String, Object>> data = new ArrayList<>();
+    String[] booksName = new String[] {"book1", "book2", "book3"};
+    String[] booksPrice = new String[] {"1.00", "1.50", "2.00"};
+    for (int i = 0; i < 3; i++) {
+        Map<String, Object> temp = new LinkedHashMap<>();
+        temp.put("name", booksName[i]);
+        temp.put("price", booksPrice[i]);
+        data.add(temp);
+    }
+```
+然后创建SimpleAdapter  
+```javascript
+    ListView listview = (ListView) findViewById(R.id.listview);
+    SimpleAdapter simpleAdapter = new SimAdapter<String>(this, data, R.layout.item, new String[] {"name", "price"}, new int[] {R.id.name, R.id.price});
+    listview.setAdapter(simpleAdapter);
+```
+R.id.name 与 R.id.price是在item布局文件中包含在ConstraintLayout中的两个textview，分别用语显示书名与价格，这个layout用于规定ListView中每个列表项的样式。SimpleAdapter中的第四个参数String数组与map的两个key对应，第五个参数int数组与这个layout中两个TextView的id相对应。注意String数组与int数组中的值要一一对应，在这个示例中，key为name的value填充到id为name的TextView中。  
+
+#### ListView列表项的单击与长按  
+方法原型如下  
+```javascript
+listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        // 处理单击事件
+    }
+});
+
+listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+    @Override
+    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+        // 处理长按事件
+        return false;
+    }
+});
+```
+长按有返回值，具体区别可以自行查阅资料。注意在两个方法的参数中都有int i，long l这两个参数，i指的是这一项在列表中的位置，l指的是这一项的id，在ArrayAdapter和SimpleAdapter中，i和l是相等的，在另一种Adapter-CursorAdapter中，l指的是从数据库中取出的数据在数据库中的id值。  
+
+#### ListView数据更新  
+SimpleAdapter有一个notifyDataSetChanged()方法，当之前创建该SimpleAdapter的List发生改变时，调用该方法就可以刷新列表了。要特别注意的一点是，List不能指向新的内存地址，即不能list = new ArrayList<>(); 这样是不起作用的，只能调用它的remove()， add()等方法来改变数据集。  
+示例  
+```javascript
+data.remove(0);
+simpleAdapter.notifyDataSetChanged();
+```
+错误写法  
+```javascript
+data = new ArrayList<>();
+simpleAdapter.notifyDataSetChanged();
+```
+
+#### RecyclerView的使用  
+在project的build.gradle文件中添加maven依赖（这一步在前两周任务已做过，即加入aliyun的依赖）。  
+在app的build.gradle文件中添加依赖：  
+implementation 'com.android.support:cardview-v7:27.1.1'  
+implementation 'com.android.support:recyclerview-v7:27.1.1'  
+最后的版本号需要看自己的项目sdk版本号而设定。  
+  
+在布局文件加入  
+```javascript
+<android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+```
+
+这样就创建了一个空的RecyclerView。在.jave文件中获得这个RecyclerView之后，选择显示方式。有以下几种。  
+recyclerView.setLayoutManager(new LinearLayoutManager(this)); // 类似ListView  
+recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 类似GridView  
+recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, OrientationHelper.VERTICAL)); // 线性宫格，类似瀑布流
+    
+使用Adapter为这个RecyclerView填充数据  
+recyclerView.setAdapter(myAdapter);  
+在RecyclerView中必须自定义实现RecyclerView.Adapter并为其提供数据集合，实现时必须遵循ViewHolder设计模式。ViewHolder通常出现在适配器中，为的是listview，recyclerview滚动时快速设置值，而不必每次都重新创建很多对象，从而提升性能。  
+##### 自定义RecyclerView.ViewHolder  
+public class MyViewHolder extends RecyclerView.ViewHolder  
+使用一个SparseArray数组存储listItem中的子View  
+```javascript
+    private SparseArray<View> views;
+    private View view;
+
+    public MyViewHolder(Context _context, View _view, ViewGroup _viewGroup){
+        super(_view);
+        view = _view;
+        views = new SparseArray<View>();
+    }
+```
+获取ViewHolder实例  
+```javascript
+    public static MyViewHolder get(Context _context, ViewGroup _viewGroup, int _layoutId) {
+        View _view = LayoutInflater.from(_context).inflate(_layoutId, _viewGroup, false);
+        MyViewHolder holder = new MyViewHolder(_context, _view, _viewGroup);
+        return holder;
+    }
+```
+ViewHolder尚未将子View缓存到SparseArray数组中时，仍然需要通过findViewById()创建View对象，如果已缓存，直接返回即可。  
+```javascript
+    public <T extends View> T getView(int _viewId) {
+        View _view = views.get(_viewId);
+        if (_view == null) {
+            // 创建view
+            _view = view.findViewById(_viewId);
+            // 将view存入views
+            views.put(_viewId, _view);
+        }
+        return (T)_view;
+    }
+```
+
+##### 自定义的RecyclerView.Adapter  
+public abstract class MyRecyclerViewAdapter<T> extends RecyclerView.Adapter<MyViewHolder>  
+其构造函数为  
+public MyRecyclerViewAdapter(Context _context, int _layoutId, List<T> _data)  
+  
+Adapter扮演着两个角色，一是根据不同ViewType创建与之相应的Item-Layout，二是访问数据集合并将数据绑定到正确的View上。因此需要重写一下两个函数  
+public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType)创建Item视图，并返回相应的ViewHolder。  
+public void onBindViewHolder(final MyViewHolder holder, int position)绑定数据到正确的Item视图上。  
+```javascript
+@Override
+    public myViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        MyViewHolder holder = MyViewHolder.get(context, parent, layoutId);
+        return holder;
+    }
+
+    @Override
+    public void onBindViewHolder(final myViewHolder holder, int position) {
+        convert(holder, data.get(position)); // convert函数需要重写，下面会讲
+    }
+```
+MyRecyclerViewAdapter类中需要声明抽象方法convert  
+public abstract void convert(MyViewHolder holder, T t);  
+在定义MyRecyclerViewAdapter时再实现它  
+```javascript
+final MyRecyclerViewAdapter myAdapter = new MyRecyclerViewAdapter<Collection>(MainActivity.this, R.layout.item, data) {
+    @Override
+    public void convert(MyViewHolder holder, Collection s) {
+        // Colloction是自定义的一个类，封装了数据信息，也可以直接将数据做成一个Map，那么这里就是Map<String, Object>
+        TextView name = holder.getView(R.id.recipeName);
+        name.setText(s.getName().toString());
+        Button first = holder.getView(R.id.img);
+        first.setText(s.getFirst().toString());
+    }
+};
+```
+RecyclerView没有OnItemClickListener方法，需要在Adapter中实现。方法为：在Adapter中设置一个监听器，当itemView被点击时，调用该监听器并且将itemView的position作为参数传递出去。  
+首先添加接口和函数。  
+```javascript
+public interface OnItemClickListener{
+        void onClick(int position);
+        void onLongClick(int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener _onItemClickListener) {
+        this.onItemClickListener = _onItemClickListener;
+    }
+```
+在onBindViewHolder()中添加  
+```javascript
+    if (onItemClickListener != null) {
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                 onItemClickListener.onClick(holder.getAdapterPosition());
+            }
+        });
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                onItemClickListener.onLongClick(holder.getAdapterPosition());
+                return false;
+            }
+        });
+    }
+```
+这样就可以使用setOnItemClickListener()方法了。  
+
+#### 为RecyclerView添加动画  
+本次实验使用网上的库，如果自己实现了好看的动画，在实验报告中说明，有加分。  
+添加依赖  
+implementation 'jp.wasabeef:recyclerview-animators:2.3.0'  
+implementation 'com.android.support:support-core-utils:27.1.1'  
+版本号随项目版本而变，自定。  
+  
+将recyclerView.setAdapter(myRecyclerViewAdapter);  
+改成  
+```javascript
+ScaleInAnimationAdapter scaleInAnimationAdapter = new ScaleInAnimationAdapter(myAdapter);
+scaleInAnimationAdapter.setDuration(1000);
+recyclerView.setAdapter((scaleInAnimationAdapter));
+recyclerView.setItemAnimator(new OvershootInLeftAnimator());
+```
+这样就添加了动画效果。在 github.com/wasabeef/recyclerview-animators 上有动画的详细说明，可以自行更换。(更换不算自己实现动画)  
+
+#### 去掉标题栏  
+去掉标题栏方法很多，这里举一种。Android Studio创建项目时默认的theme是  
+```javascript
+android:theme="@style/AppTheme"
+```
+这个是在AndroidManifest文件中定义的，可以去看看。它的定义是  
+```javascript
+<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+```
+修改parent即可  
+```javascript
+<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+```
+#### 星星图标的切换  
+星星切换的难点在于如何得知星星此时是空心还是实心，这个也有多种做法。这里介绍一种简单的。  
+每个View都可以设置tag，通过tag可以用来判断该View现在的状态。在初始化的时候，将tag设置为0，标记此时为空心星星，如果星星被点击了，并且tag为0，那么将图片换成实心的星星，然后设置tag为1；如果tag为1，那么将图片换成空心的星星，然后设置tag为0。建议在.java文件中给需要的view设置tag。  
+
+#### FloatingActionBar  
+添加依赖  
+implementation 'com.android.support:design:27.1.1'  
+版本号自定。  
+设置布局文件  
+```javascript
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/colletions"
+        android:backgroundTint="@color/colorWhite"
+        android:backgroundTintMode="src_atop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_margin="25dp" />
+```
+切换图片时使用setImageResource()。  
+
+### 拓展知识   
+ListView的自定义Adapter  
+前面介绍的ArrayAdapter和SimpleAdapter都有一定的局限性，SimpleAdapter较ArrayAdapter要好一些，但还是不够灵活，假如某些列表项需要有一些特性，或者列表项中某些控件需要设置监听器，就不够用了。因此，强烈建议大家一开始就习惯自定义Adapter来适配自己的列表，只在某些简单的情况下才使用前面的两种Adapter。  
+自定义的Adapter需要集成BaseAdapter  
+```javascript
+public class MyListViewAdapter extends BaseAdapter {
+    @Override
+    public int getCount() {
+        return 0;
+    }
+
+    @Override
+    public long getItemId(int i) {
+        return 0;
+    }
+
+    @Override
+    public Object getItem(int i) {
+        return null;
+    }
+
+    @Override
+    public View getView(int i, View view, ViewGroup viewGroup) {
+        return null;
+    }
+}
+```
+上面列出的四个方法是必须重写的四个方法，下面一一介绍这四个方法。  
+int getCount();获得数据项列表的长度，也就是一共有多少个数据项。  
+Object getItem(int i); //获得一个数据项。  
+long getItemId(int i); //获得数据项的位置。  
+View getView(int i, View view, ViewGroup viewGroup); //获得数据项的布局样式，最重要的一个方法。  
+自定义Adapter需要提供一个数据列表才能填充数据，一般是一个List类型，以图书列表为例，可以献给列表项创建一个类Book，然后将List传入Adapter中作为数据提供的列表。  
+```javascript
+public class Book {
+    private String bookName;
+    private String bookPrice;
+    public Book(String bookName, String bookPrice) {
+        this.bookName = bookName;
+        this.bookPrice = bookPrice;
+    }
+    ... // get & set 方法
+}
+```
+```javascript
+public class MyAdapter extends BaseAdapter {
+    private List<Book> list;
+
+    public MyAdapter(list<Book> list) {
+        this.list = list;
+    }
+    @Override
+    public int getCount() {
+        if (list == null) {
+            return 0;
+        }
+        return list.size();
+    }
+
+    @Override
+    public long getItemId(int i) {
+        return i;
+    }
+
+    @Override
+    public Object getItem(int i) {
+        if (list == null) {
+            return null;
+        }
+        return list.get(i);
+    }
+    ... // 其余方法
+}
+```
+依照刚才的想法重写完，截下来是最重要的getView()方法，首先解释一个三个参数的含义  
+public View getView(int i, View view, ViewGroup viewGroup)  
+i指的是当前是在加载第几项的列表项  
+viewGroup是列表项View的父视图，调整列表项的宽高用的  
+view指的是一个列表项的视图，我们需要给view一个布局，然后在布局中放置我们需要的内容  
+```javascript
+@Override
+public View getView(int i, View view, ViewGroup viewGroup) {
+    // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
+    view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+    // 获得布局中显示书名和价格的两个TextView
+    TextView bookName = (TextView) view.findViewById(R.id.name);
+    TextView bookPrice = (TextView) view.findViewById(R.id.price);
+    // 从数据列表中取出对应的对象，然后赋值给他们
+    bookName.setText(list.get(i).getBookName());
+    bookPrice.setText(list.get(i).getBookPrice());
+    // 将这个处理好的view返回
+    return view;
+}
+```
+这是getView()方法最基本的写法。每次从屏幕外滚进来一个新的项就要再加载一次布局。其实ListView每次有新的一项滚入就会滚出另一项，这时候view是有内容的，但是是就内容，因此只需要改变一下view的内容然后返回它就可以了，不需要再去加载一次布局。  
+```javascript
+@Override
+public View getView(int i, View view, ViewGroup viewGroup) {
+    // 当view为空时才加载布局，否则，直接修改内容
+    if (view == null) {
+        // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
+        view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+    }
+    // 获得布局中显示书名和价格的两个TextView
+    TextView bookName = (TextView) view.findViewById(R.id.name);
+    TextView bookPrice = (TextView) view.findViewById(R.id.price);
+    // 从数据列表中取出对应的对象，然后赋值给他们
+    bookName.setText(list.get(i).getBookName());
+    bookPrice.setText(list.get(i).getBookPrice());
+    // 将这个处理好的view返回
+    return view;
+```
+这样写可以减少一些重复的加载布局操作，提高效率。但是每次findViewById()也是一件很麻烦的事情，如果控件一多，也会降低ListView的效率。因此，使用setTag的方法和新建一个ViewHolder类来提高这部分的效率。  
+```javascript
+@Override
+public View getView(int i, View view, ViewGroup viewGroup) {
+    // 新声明一个View变量和ViewHoleder变量,ViewHolder类在下面定义。
+    View convertView;
+    ViewHolder viewHolder;
+    // 当view为空时才加载布局，否则，直接修改内容
+    if (view == null) {
+        // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
+        view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+        viewHolder = new ViewHolder();
+        viewHolder.bookName = (TextView) view.findViewById(R.id.name);
+        viewHolder.bookPrice = (TextView) view.findViewById(R.id.price);
+        convertView.setTag(viewHolder); // 用setTag方法将处理好的viewHolder放入view中
+    } else { // 否则，让convertView等于view，然后从中取出ViewHolder即可
+        convertView = view；
+        viewHolder = (ViewHolder) convertView.getTag();
+    }   
+    // 从viewHolder中取出对应的对象，然后赋值给他们
+    viewHolder.bookName.setText(list.get(i).getBookName());
+    viewHolder.bookPrice.setText(list.get(i).getBookPrice());
+    // 将这个处理好的view返回
+    return convertView;
+}
+
+private class ViewHolder {
+    public TextView bookName;
+    public TextView bookPrice;
+}
+```
+这样写ListView效率就比较高。  
+最终版的Adapter如下。  
+```javascript
+public class myListViewAdapter extends BaseAdapter {
+    private List<Book> list;
+
+    public MyAdapter(list<Book> list) {
+        this.list = list;
+    }
+    @Override
+    public int getCount() {
+        if (list == null) {
+            return 0;
+        }
+        return list.size();
+    }
+
+    @Override
+    public long getItemId(int i) {
+        return i;
+    }
+
+    @Override
+    public Object getItem(int i) {
+        if (list == null) {
+            return null;
+        }
+        return list.get(i);
+    }
+    @Override
+    public View getView(int i, View view, ViewGroup viewGroup) {
+        // 新声明一个View变量和ViewHoleder变量,ViewHolder类在下面定义。
+        View convertView;
+        ViewHolder viewHolder;
+        // 当view为空时才加载布局，否则，直接修改内容
+        if (view == null) {
+            // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
+            view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+            viewHolder = new ViewHolder();
+            viewHolder.bookName = (TextView) view.findViewById(R.id.name);
+            viewHolder.bookPrice = (TextView) view.findViewById(R.id.price);
+            convertView.setTag(viewHolder); // 用setTag方法将处理好的viewHolder放入view中
+        } else { // 否则，让convertView等于view，然后从中取出ViewHolder即可
+            convertView = view；
+            viewHolder = (ViewHolder) convertView.getTag();
+        }   
+        // 从viewHolder中取出对应的对象，然后赋值给他们
+        viewHolder.bookName.setText(list.get(i).getBookName());
+        viewHolder.bookPrice.setText(list.get(i).getBookPrice());
+        // 将这个处理好的view返回
+        return convertView;
+    }
+
+    private class ViewHolder {
+        public TextView bookName;
+        public TextView bookPrice;
+    }
+}
+```
+
+### 一些可以参考的tips  
+* 关于ListView数据项更新，可以在Activity中修改原list(即调用remove方法)，然后再次传入adapter的一个方法中，比如自定义一个refresh方法，然后在这个方法中对adapter中的list进行重赋值，然后调用notifyDataSetChanged()方法。代码...不贴。
+* 关于RecyclerView数据项更新，和ListView更新类似。由于点击事件实际上是在Adapter中处理的，可以直接在Adapter的onBindViewHolder方法中直接处理更新问题。之前在绑定点击事件处理时holder.getAdapterPosition()这一项实际上是得到被点击的那一项的位置，因此可以直接从data项中删除它，然后调用notifyItemRemoved(holder.getAdapterPosition())。代码...依旧不贴。
+* 关于长按事件处理。返回值为true和false时得到的结果是不同的。在本次实验中，若返回值为false，应用很容易就崩了，可以自己尝试一下，然后发现原因。
+* 关于页面跳转。建议使用startActivityForResult方法。然后利用onActivityResult方法处理返回的结果。当然也可以用别的方法，只要最后结果是对的就可以。（何为结果对，这一点在要求里写了）具体实现...依旧不贴。
+* 关于新建一个Collection类。因为在定义ListView的Adapter时实际上处理的是一个类，因此将所有数据都封装成一个类，然后页面跳转时需要将这个类序列化后放在bundle里，然后再将这个bundle放在intent中，所以这个类在声明时注意要implements Serializable。
+* 关于在收藏夹点进详情页面然后点击收藏后点击返回，注意此时收藏夹应该多出新的一项，然后再次点击进入详情页面后，不点击收藏再点击返回按钮，收藏夹不应该多出新的一项。
+* 关于FloatingActionButton的切换事件。由于点击这个按钮，会在RecyclerView和ListView之间切换，可以将这两个控件写在同一个布局文件中，通过在.java文件中调用setVisibility方法来使得一个显示，一个不显示。
