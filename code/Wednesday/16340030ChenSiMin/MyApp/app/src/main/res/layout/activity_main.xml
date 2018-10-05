@@ -49,15 +49,16 @@
             android:textSize="18sp"/>
 
         <Button
-            android:id="@+id/search_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintRight_toRightOf="parent"
-            android:text="搜索"
-            android:textColor="#FFFF"
-            android:background="@drawable/button_shape"
-            android:layout_marginRight="20dp"
-            android:textSize="18sp"/>
+        android:id="@+id/search_button"
+        android:onClick="searchButtonOnClick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="搜索"
+        android:textColor="#FFFF"
+        android:background="@drawable/button_shape"
+        android:layout_marginRight="20dp"
+        android:textSize="18sp"/>
     </LinearLayout>
 
     <RadioGroup
