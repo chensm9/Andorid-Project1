@@ -625,7 +625,7 @@ public View getView(int i, View view, ViewGroup viewGroup) {
     return view;
 }
 ```
-这是getView()方法最基本的写法。每次从屏幕外滚进来一个新的项就要再加载一次布局。其实ListView每次有新的一项滚入就会滚出另一项，这时候view是有内容的，但是是就内容，因此只需要改变一下view的内容然后返回它就可以了，不需要再去加载一次布局。  
+这是getView()方法最基本的写法。每次从屏幕外滚进来一个新的项就要再加载一次布局。其实ListView每次有新的一项滚入就会滚出另一项，这时候view是有内容的，但是是旧内容，因此只需要改变一下view的内容然后返回它就可以了，不需要再去加载一次布局。  
 ```javascript
 @Override
 public View getView(int i, View view, ViewGroup viewGroup) {
@@ -739,6 +739,6 @@ public class myListViewAdapter extends BaseAdapter {
 * 关于RecyclerView数据项更新，和ListView更新类似。由于点击事件实际上是在Adapter中处理的，可以直接在Adapter的onBindViewHolder方法中直接处理更新问题。之前在绑定点击事件处理时holder.getAdapterPosition()这一项实际上是得到被点击的那一项的位置，因此可以直接从data项中删除它，然后调用notifyItemRemoved(holder.getAdapterPosition())。代码...依旧不贴。
 * 关于长按事件处理。返回值为true和false时得到的结果是不同的。在本次实验中，若返回值为false，应用很容易就崩了，可以自己尝试一下，然后发现原因。
 * 关于页面跳转。建议使用startActivityForResult方法。然后利用onActivityResult方法处理返回的结果。当然也可以用别的方法，只要最后结果是对的就可以。（何为结果对，这一点在要求里写了）具体实现...依旧不贴。
-* 关于新建一个Collection类。因为在定义ListView的Adapter时实际上处理的是一个类，因此将所有数据都封装成一个类，然后页面跳转时需要将这个类序列化后放在bundle里，然后再将这个bundle放在intent中，所以这个类在声明时注意要implements Serializable。
+* 关于新建一个Collection类。因为在定义ListView的Adapter时实际上是用来处理一个类，因此将所有数据都封装成一个类，然后页面跳转时需要将这个类序列化后放在bundle里，然后再将这个bundle放在intent中，所以这个类在声明时注意要implements Serializable。
 * 关于在收藏夹点进详情页面然后点击收藏后点击返回，注意此时收藏夹应该多出新的一项，然后再次点击进入详情页面后，不点击收藏再点击返回按钮，收藏夹不应该多出新的一项。
 * 关于FloatingActionButton的切换事件。由于点击这个按钮，会在RecyclerView和ListView之间切换，可以将这两个控件写在同一个布局文件中，通过在.java文件中调用setVisibility方法来使得一个显示，一个不显示。
