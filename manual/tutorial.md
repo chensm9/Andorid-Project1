@@ -767,7 +767,9 @@ operation.xml (详情界面中底部ListView的适配器用到的布局文件，
 
 3.MyRecyclerViewAdapter.java  
 我自己在写的时候，这个类里面定义onBindViewHolder会报错。所以在类声明时，将一开始改为  
-public abstract class MyRecyclerViewAdapter<T> extends RecyclerView.Adapter<MyViewHolder>  
+```javascript
+public abstract class MyRecyclerViewAdapter<T> extends RecyclerView.Adapter<MyViewHolder>
+```
 其中这里面的T，在实际用到这个类时，我传入的是一个Collection类。如果这么改了之后，相应地去修改类里面的List成员变量声明：List<T> data;  
 在这个类里，要重写的方法有onCreateViewHolder，onBindViewHolder，getItemCount，另外还要定义接口OnItemClickListener，以及setOnItemClickListener方法，这个类的构造函数。还需要声明一个抽象方法convert，在MainActivity中实现它。  
 
