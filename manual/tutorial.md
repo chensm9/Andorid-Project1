@@ -614,7 +614,7 @@ view指的是一个列表项的视图，我们需要给view一个布局，然后
 @Override
 public View getView(int i, View view, ViewGroup viewGroup) {
     // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
-    view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+    view = LayoutInflater.from(context).inflate(R.layout.item, null);
     // 获得布局中显示书名和价格的两个TextView
     TextView bookName = (TextView) view.findViewById(R.id.name);
     TextView bookPrice = (TextView) view.findViewById(R.id.price);
@@ -632,7 +632,7 @@ public View getView(int i, View view, ViewGroup viewGroup) {
     // 当view为空时才加载布局，否则，直接修改内容
     if (view == null) {
         // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
-        view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+        view = LayoutInflater.from(context).inflate(R.layout.item, null);
     }
     // 获得布局中显示书名和价格的两个TextView
     TextView bookName = (TextView) view.findViewById(R.id.name);
@@ -653,13 +653,13 @@ public View getView(int i, View view, ViewGroup viewGroup) {
     // 当view为空时才加载布局，否则，直接修改内容
     if (view == null) {
         // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
-        view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+        view = LayoutInflater.from(context).inflate(R.layout.item, null);
         viewHolder = new ViewHolder();
         viewHolder.bookName = (TextView) view.findViewById(R.id.name);
         viewHolder.bookPrice = (TextView) view.findViewById(R.id.price);
         convertView.setTag(viewHolder); // 用setTag方法将处理好的viewHolder放入view中
     } else { // 否则，让convertView等于view，然后从中取出ViewHolder即可
-        convertView = view；
+        convertView = view;
         viewHolder = (ViewHolder) convertView.getTag();
     }   
     // 从viewHolder中取出对应的对象，然后赋值给他们
@@ -711,13 +711,13 @@ public class myListViewAdapter extends BaseAdapter {
         // 当view为空时才加载布局，否则，直接修改内容
         if (view == null) {
             // 通过inflate的方法加载布局，context需要在使用这个Adapter的Activity中传入。
-            view = LayoutInfalter.from(context).inflate(R.layout.item, null);
+            view = LayoutInflater.from(context).inflate(R.layout.item, null);
             viewHolder = new ViewHolder();
             viewHolder.bookName = (TextView) view.findViewById(R.id.name);
             viewHolder.bookPrice = (TextView) view.findViewById(R.id.price);
             convertView.setTag(viewHolder); // 用setTag方法将处理好的viewHolder放入view中
         } else { // 否则，让convertView等于view，然后从中取出ViewHolder即可
-            convertView = view；
+            convertView = view;
             viewHolder = (ViewHolder) convertView.getTag();
         }   
         // 从viewHolder中取出对应的对象，然后赋值给他们
@@ -742,3 +742,46 @@ public class myListViewAdapter extends BaseAdapter {
 * 关于新建一个Collection类。因为在定义ListView的Adapter时实际上是用来处理一个类，因此将所有数据都封装成一个类，然后页面跳转时需要将这个类序列化后放在bundle里，然后再将这个bundle放在intent中，所以这个类在声明时注意要implements Serializable。
 * 关于在收藏夹点进详情页面然后点击收藏后点击返回，注意此时收藏夹应该多出新的一项，然后再次点击进入详情页面后，不点击收藏再点击返回按钮，收藏夹不应该多出新的一项。
 * 关于FloatingActionButton的切换事件。由于点击这个按钮，会在RecyclerView和ListView之间切换，可以将这两个控件写在同一个布局文件中，通过在.java文件中调用setVisibility方法来使得一个显示，一个不显示。
+  
+---
+  
+### 给看到最后的同学一点小帮助
+为了减轻大家的负担，这里给出demo的部分文件目录以及一些.java文件要实现的方法或函数，仅供参考。  
+
+---
+
+res目录下的layout目录，我自己是写了四个layout文件，分别是:  
+activity_main.xml (这次任务的其实页面，包括了一个ListView，一个RecyclerView，以及一个FloatingActionButton)  
+detail.xml (食品的详情界面)  
+item.xml (食品列表与收藏夹的适配器要用到的布局文件)  
+operation.xml (详情界面中底部ListView的适配器用到的布局文件，只含有一个TextView，其他所有的布局控件都删除)  
+
+---
+
+关于.java文件，一共有六个，下面分别来讲：  
+1.Collection.java  
+这个是我自己设计的一个类，用来封装数据的，里面其实就是一些成员变量以及他们的get，set方法，当需要在界面之间传递数据的时候直接把一个类对象传过去就完成了。这个比较简单所以就不在这里写了。记得声明时加上implements Serializable。  
+
+2.MyViewHolder.java  
+这个没什么难度，上面的代码复制粘贴一下就可以  
+
+3.MyRecyclerViewAdapter.java  
+我自己在写的时候，这个类里面定义onBindViewHolder会报错。所以在类声明时，将一开始改为  
+public abstract class MyRecyclerViewAdapter<T> extends RecyclerView.Adapter<MyViewHolder>  
+其中这里面的T，在实际用到这个类时，我传入的是一个Collection类。如果这么改了之后，相应地去修改类里面的List成员变量声明：List<T> data;  
+在这个类里，要重写的方法有onCreateViewHolder，onBindViewHolder，getItemCount，另外还要定义接口OnItemClickListener，以及setOnItemClickListener方法，这个类的构造函数。还需要声明一个抽象方法convert，在MainActivity中实现它。  
+
+4.MyListViewAdapter.java  
+这个类的实现，修改一下拓展知识里面最终版本里的代码就行。注意在这个类里面还定义了一个ViewHolder类。  
+然后我自己还加了一个refresh方法，里面是调用了notifyDataSetChanged()方法，在需要更新列表时调用它，当然也可以不这么做。
+
+5.MainActivity.java  
+主界面的功能实现。  
+首先完成RecyclerView的内容填充，在定义RecyclerViewAdapter类对象时，需要实现convert方法。然后就是动画的设置以及点击事件处理。  
+ListView比较简单就不展开来说了。
+然后解决FloatingActionButton(fab)的问题。首先先调用setVisibility，隐藏ListView。然后完成fab的点击事件处理，在这里我处理的很简单，先定义一个变量tag = 0，然后在onClick方法中，当tag == 0时，修改ListView和RecyclerView的Visibility，修改fab的图片，以及修改tag = 1，当tag = 1时，操作相反。
+然后说一下长按与短按事件处理。首先先说长按，listview是弹出对话框，然后点击确认按钮时，调用了上面我自己定义的refresh方法。recyclerview的长按，我在这个java文件中只写了Toast的生成，条目的更新放在了MyRecyclerViewAdapter内的onBindViewHolder中实现了。而短按是界面的跳转，将要传过去的collection对象放在bundle里(调用putSerializable方法)，然后放在intent中，之后我用的是startActivityForResult方法。然后在此之后需要重写onActivityResult，对条目进行更新。
+
+6.DetailActivity.java  
+详情界面的功能实现。底部的ListView用ArrayAdapter作为适配器就可以了。然后需要实现返回图标，星星图标，收藏图标的点击事件处理。
+星星图标的点击事件与MainActivity中fab的很类似。收藏图标的点击事件处理中，我只写了Toast的产生，以及将传过来这个页面的collection对象中的isCollected成员变量改为了True。之后处理返回按钮时，检查这个collection对象中isCollected对象是不是为True，如果是，那么将它放在intent中，调用setResult方法，如果不是，直接调用finish。
